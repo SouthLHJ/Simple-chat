@@ -2,9 +2,9 @@ const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
 const expressWS = require("express-ws");
-
+const dotenv = require("dotenv");
 const session = require("express-session");
-
+dotenv.config();
 const app = express();
 const wsInstance = expressWS(app);
 
@@ -12,7 +12,8 @@ const accountRouter = require("./router/account");
 const chatRouter = require("./router/chat");
 //몽구스 연결!
 !async function (){
-    const uri = "mongodb+srv://bizpoll:0627204800@cluster0.9dbcz.mongodb.net/?retryWrites=true&w=majority";
+    // console.log(process.env.MONGODB_URI)
+    const uri = process.env.MONGODB_URI;
     await mongoose.connect(uri,{dbName : "study"});
 }();
 
