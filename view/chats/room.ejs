@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room</title>
+    <link rel="stylesheet" href="/css/normalize.css">
+    <link rel="stylesheet" href="/css/default.css">
+    <link rel="stylesheet" href="/css/chats/room.css">
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css"
+    />
+</head>
+<body>
+    <%- include("../common/top.ejs")%>
+    <div id="main">
+        <div id="title">
+            <a href="/chat"><i class="fa fa-arrow-left" aria-hidden="true"></i></a>
+            <span class="title"><%=room.title%></span>
+            <span class="makeRoom"><%=room.createdAt.toLocaleDateString()%></span>
+        </div>
+
+        <!--메세지 창-->
+        <div id="chatBox">
+            <%contents.forEach((content)=>{%>
+                <!--alarm과 chat&file 분리-->
+                <%if(content.data === "alarm"){%>
+                    <div class="<%=content.data%>Area">
+                        <p class="<%=content.data%>"><%=content.content%></p>
+                    </div>
+                <%}else{%>
+                    <!-- right와 left 분리 -->
+                    <div class="<%=content.type%>" >
+                        <p class="talker"><small><%=content.talker%></small></p>
+                        
+                        <%if( content.type == "right"){%>
+                        <div class="msgInfoR">
+                            <span class="date"><%=content.createdAt.toLocaleTimeString()%></span>
+                            <span class="beingRead" data-being-read="<%=content.beingRead%>"></span> 
+                        <%}else{%>
+                        <div class="msgInfoL">
+                        <%}%>
+
+                        <!-- chat과 file 분리 -->
+                        <%if(content.data === "chat"){%>
+                            <span class="talkmsg"><%=content.content%></span>
+                        <%}else if(content.data === "file"){%>
+                            <div class="talkmsg">
+                                <img class="talkfile" src="<%=content.content%>"/>
+                            </div>
+                        <%}%>
+                        
+                        <%if( content.type == "left"){%>    
+                            <span class="beingRead" data-being-read="<%=content.beingRead%>"></span> 
+                            <span class="date"><%=content.createdAt.toLocaleTimeString()%></span>
+                        <%}%>
+                        </div>
+                    </div>
+                <%}%>
+            <%})%>
+        </div>
+        
+        <!--메세지 입력-->
+        <div id="msgBox">
+            <button id="iconFile" onclick="iconFile()"><i class="fa fa-plus-square-o" aria-hidden="true"></i></button>
+            <input type="file" id="file" accept="imgage/*" data-room-id="<%=room._id%>" />
+            <input type="text" id="msg"  data-room-id="<%=room._id%>"/>
+        </div>
+
+        <!--참가자 리스트-->
+        <div id="joinerArea">
+            <div class="joinerList">
+                <p class="joinerTitle">참여자  <%=room.joiners.length%></p>
+                <%room.joiners.forEach((one,idx) =>{%>
+                    <p class="joiner"><i class="fa fa-user-circle-o" aria-hidden="true"></i><%=one.joiner%></p>
+                <%})%>
+            </div>
+            <form action="/chat/outRoom" method="post"  onsubmit="outRoomChk(event)">
+                <input name="roomId" type="hidden" value="<%=room._id%>"/>
+                <input name="userid" type="hidden" value="<%=userid%>"/>
+                <input class="outRoom" type="submit"  value="채팅방 나가기"/>
+            </form>
+            <%if(room.owner == userid){%>
+                <form action="/chat/deleteRoom" method="post"  onsubmit="deleteRoomChk(event)">
+                    <input name="roomId" type="hidden" value="<%=room._id%>"/>
+                    <input name="userid" type="hidden" value="<%=userid%>"/>
+                    <input class="outRoom" type="submit"  value="채팅방 삭제하기"/>
+                </form>
+            <%}%>
+        </div>
+
+    </div>
+
+    <script>
+        const roomId = document.querySelector("#msg").dataset.roomId;
+        let userId;
+
+        
+
+        //실시간 통신
+        const ws = new WebSocket("ws://"+location.host+"/chat/room?room_id="+roomId);
+
+        ws.onmessage = function(rst){
+            let msg = JSON.parse(rst.data);
+            //서버에서 접속자들을 한공간에서 관리하게되면 다른 방에 있는 사람들에게도 변화를 감지해서 msg를 전달한다.
+            //방법2으로 서버에서 다 뿌려놓은 메세지를 클라이언트가 걸러서 작동하게 하는 매우 단순한 방법이다. (다만 적은 이용자일때만 사용할 수 있을듯?)
+            //방법1으로 매우 많은 사용자가 있다면 서버에서 방마다 입장되어있는 ws들을 따로 관리해버리는 방법이 있다.(가장 적합하고 효율적)
+            if(msg.apply !== roomId){
+                return;
+            }
+            switch(msg.type){
+                case "join" : 
+                    let divJoin = document.createElement("div");
+                    let pJoin = document.createElement("p")
+                    pJoin.appendChild(document.createTextNode(msg.id +"님이 입장하였습니다."));
+
+                    divJoin.classList.add("alarmArea");
+                    pJoin.classList.add("alarm");
+
+                    divJoin.appendChild(pJoin);
+                    document.querySelector("#chatBox").appendChild(divJoin);
+                    
+                    //참가자 입장하면 참가자 리스트에 추가하기
+                    document.querySelector(".joinerList").innerHTML += `<p class="joiner"><i class="fa fa-user-circle-o" aria-hidden="true"></i>${msg.id}</p>`
+                    break;
+
+                case "exit" : 
+                    // console.log("퇴장 메세지 처리하러 왔습니다.")
+                    // 한명이 퇴장하면. chatBox에서 퇴장하였습니다 적고..
+                    let divExit = document.createElement("div");
+                    divExit.appendChild(document.createTextNode(msg.id +"님이 퇴장하였습니다."));
+                    divExit.classList.add("alarm");
+                    document.querySelector("#chatBox").appendChild(divExit);
+
+                    //참가자 리스트 그냥 다시 업로딩
+                    let joiners2 = document.querySelector(".joinerList");
+
+                    joiners2.innerHTML = `
+                    <p class="joinerTitle">참여자</p>
+                    `
+                    msg.joiners.forEach((user)=>{
+                        joiners2.innerHTML += `
+                        <p class="joiner"><i class="fa fa-user-circle-o" aria-hidden="true"></i>${user.joiner}</p>
+                        `
+                    })
+                    break;
+
+                case "new" : 
+                    // console.log("ws NEW!!!!",msg.data);
+                    let divNew = document.createElement("div");
+                    divNew.classList.add(`${msg.data.usertype}`);
+                    let date = new Date(msg.data.createdAt).toLocaleTimeString();
+
+                    divNew.innerHTML = `<p class="talker"><small>${msg.data.talker}</small></p>`
+                    
+                    let divmsginfo = document.createElement("div");
+                    
+                    
+                    if(msg.data.usertype=="right"){
+                    //오른쪽일때!
+                        divmsginfo.classList.add("msgInfoR")
+                        //beingRead 먼저 넣어주고
+                        divmsginfo.innerHTML += `<span class="date">${date}</span>
+                                                 <span class="beingRead" data-being-read="${msg.data.beingRead}"></span>
+                                            `
+                        if(msg.data.data === "chat"){
+                            divmsginfo.innerHTML += `<span class="talkmsg">${msg.data.content}</span>`;
+                        }else{
+                            divmsginfo.innerHTML += `<div class="talkmsg"><img class="talkfile" src="${msg.data.content}"/></div>`;
+                        }
+                    }
+                    else{
+                    //왼쪽일때!
+                        divmsginfo.classList.add("msgInfoL")
+                        if(msg.data.data === "chat"){
+                            divmsginfo.innerHTML += `<span class="talkmsg">${msg.data.content}</span>`;
+                        }else{
+                            divmsginfo.innerHTML += `<div class="talkmsg"><img class="talkfile" src="${msg.data.content}"/></div>`;
+                        }
+                        //왼쪽이면 beingRead 나중에 넣어주고
+                        divmsginfo.innerHTML += `<span class="beingRead" data-being-read="${msg.data.beingRead}"></span>
+                        <span class="date">${date}</span>`
+                    }
+                    divNew.appendChild(divmsginfo);
+                    // console.log(msg.data.talker,userId)
+                    document.querySelector("#chatBox").appendChild(divNew);
+
+                    ReloadBeingRead()
+                    
+                    break;  
+
+                case "read" :
+                    console.log("Ws Read 입장");
+                    ReloadBeingRead(msg.id);
+
+                    break;
+                
+                case "delete" :
+                    alert("개설자가 방을 폭파시켰습니다. 방에서 강제로 나가지게됩니다.")
+                    location.href = "/chat"
+                    break;
+
+            }
+            rebalanceHeight()
+            // console.log(msg);
+        }
+
+
+        //메세지 chat 입력 발생
+        document.querySelector("#msg").onchange = (evt)=>{
+            if(evt.target.value.trim().length===0){
+                return;
+            }
+            fetch("/chat/api/message",{
+                method:"post",
+                body : JSON.stringify({
+                    roomId : evt.target.dataset.roomId,
+                    content : evt.target.value
+                }),
+                headers : {
+                    "Content-type" : "application/json"
+                }
+            })
+            .then((res)=>{
+                return res.json();
+            })
+            .then((rst)=>{
+                // console.log(rst);
+                // rebalanceHeight();
+            }).catch((err)=>{
+                console.log(err.message);
+                alert("서버 통신 일시 장애")
+            })
+            evt.target.value = "";
+        }
+
+        //메세지 file 입력 발생
+        document.querySelector("#file").onchange = (evt)=>{
+            console.log(evt.target.files);
+
+            //file의 fetch body는 post + multipart/form-data 로 요청을 보내야 파일이 전송이 됨
+            const data = new FormData();
+            //data.append(name, value);
+            data.append("attach",evt.target.files[0]);
+            // data.append("roomId",evt.target.dataset.roomId);
+
+            fetch("/chat/api/upload?roomId="+evt.target.dataset.roomId,{
+                method : "post",
+                body : data,
+            })
+            .then((res)=>{
+                return res.json();
+            })
+            .then((json)=>{
+                console.log(json);
+                // evt.target.reset();
+            }).catch((err)=>{
+                console.log(err.message);
+            })
+
+        }
+
+        
+        
+        function rebalanceHeight(){
+            // console.log(document.querySelector("#chatBox").scrollHeight);
+            document.querySelector("#chatBox").scrollTop = 
+                document.querySelector("#chatBox").scrollHeight;
+        }
+        
+        function iconFile(){
+            document.querySelector("#file").dispatchEvent(new MouseEvent("click"))
+        }
+        
+        function outRoomChk(evt){
+            if(confirm("채팅방에서 나가시겠습니까? 모든 대화내용을 잃어버립니다.")){
+                return;
+            }else{
+                return evt.preventDefault();
+            }
+        }
+
+        function deleteRoomChk(evt){
+            if(confirm("채팅방을 삭제하시겠습니까? 방의 모든 정보를 잃어버립니다.")){
+                return;
+            }else{
+                return evt.preventDefault();
+            }
+        }
+
+        
+        function ReloadBeingRead(userId){
+            console.log("ReloadBeingRead 동작!!")
+            let beingReads = document.querySelectorAll(".beingRead")
+            // console.log(beingReads);
+            beingReads.forEach((beingRead)=>{
+                // console.log(beingRead);
+                //일단 dataset을 뽑아내
+                let text = beingRead.dataset.beingRead;
+                //text를 배열로 바꿔
+                let arr = text.split(",");
+                // console.log(arr);
+                //arr에 있는 값이 ""아닐경우에만
+                if(arr[0]!==""){
+                    // 들과 비교해서 함수로 들어온 userId와 같은게 있으면 제거해
+                    arr.forEach((joiner,i)=>{
+                        //만약 joiner와 userId가 같으면 arr에서 그 요소 빼버려
+                        if(joiner == userId){
+                            arr.splice(i,1);
+                        }
+                    })
+                    //textContent에 배열의 길이로 넣어줘 (다만 길이가 0 이라면 공란으로 넣어줘)
+                    if(arr.length>0){
+                        beingRead.textContent=arr.length;
+                    }else{
+                        beingRead.textContent="";
+                    }
+                    //data-being-read를 재설정하기위해서 arr를 join(",")로 묶어!
+                    let setData = arr.join(",");
+                    //묶은걸 data-being-read에 재설정해줘
+                    beingRead.dataset.beingRead = setData;
+
+                }else{
+                    beingRead.textContent="";
+                }
+                // console.log(beingRead);
+                // console.log("====")
+
+                /*
+                //리로드 안읽은 사람 갯수
+                // console.log(test.length);
+                console.log(arr);
+                beingRead.textContent=arr.length;
+                */
+                /* dataset 재설정 됨!
+                beingRead.dataset.beingRead = "재설정"
+                console.log(beingRead);
+                */
+            })
+            
+        }
+
+        !function checkedCheck(){
+            userId = "<%=JSON.stringify(userid)%>";
+            userId = userId.replaceAll("&#34;", '\"');
+            userId = JSON.parse(userId);
+
+            
+            ReloadBeingRead("")
+            
+            rebalanceHeight()
+        }();
+    </script>
+
+</body>
+</html>

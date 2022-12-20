@@ -1,0 +1,52 @@
+/* 눈누에서 끌고온 폰트 */
+@font-face {
+    font-family: 'GmarketSansLight';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansLight.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'ChosunGu';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@1.0/ChosunGu.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+/* 구글 폰트에서 끌고온 폰트 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap');
+
+* {
+    font-family: 'ChosunGu';
+}
+body{
+    height: 100%;
+}
+input{
+    font-family: 'ChosunGu';
+}
+p{
+color: rgb(1, 64, 66); 
+}
+span{
+    color: rgb(1, 64, 66); 
+}
+h2{
+background-color: rgb(1, 64, 66); 
+color: white;
+padding: 10px;
+font-family: 'GmarketSansLight';
+}
+button{
+background-color: rgb(1, 64, 66); 
+color: white;
+border-color: rgb(1, 64, 66); 
+border-radius: 5px;
+}
+textarea{
+width: 490px;
+border : solid;
+border-color: rgb(1, 64, 66); 
+border-radius: 5px;
+}
+
+
+

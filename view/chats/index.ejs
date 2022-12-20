@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>index</title>
+    <link rel="stylesheet" href="/css/normalize.css">
+    <link rel="stylesheet" href="/css/default.css">
+    <link rel="stylesheet" href="/css/chats/index.css">
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css"
+    />
+    <style>
+        
+    </style>
+</head>
+<body>
+    <%- include("../common/top.ejs")%>
+    <div id="main">
+
+        <!--방만들기-->                                                
+        <div id="formRoomArea"> 
+            <form method="post" action="/chat/open" onsubmit="chkRequire(event)">
+
+                <lable for="#inTitle">방이름</lable>
+                <input id="inTitle" name="title" type="text" placeholder="(필수)"/> 
+
+                <label for="#inPrivate">비밀 채팅방 (필수)</label>
+                <select id="inPrivate" name="type">
+                    <option value="public">공개</option>
+                    <option value="private">비공개</option>
+                </select>
+
+                <label for="#inPassword">비밀번호</label>
+                <input id="inPassword" name="password" type="text" placeholder="(필수)"/>
+
+                <button>방 만들기</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="optionArea">
+        <span>방 검색</span>
+        <form action="/chat" method="post">
+            <select name="roomOption">
+                <option class="참여방">참여방</option>
+                <option class="전체">전체</option>
+                <option class="비참여방">비참여방</option>
+            </select>
+            <input type="submit" value="검색"/>
+        </form>
+
+    </div>
+
+
+    <!--방 목록-->
+    <div id="roomsListArea">
+        <% locals.rooms.forEach((room)=>{%>
+        <div id="room">
+            <span class="title"><%=room.title%> </span>
+            <%if(room.type == "private"){%>
+                <span><i class="fa fa-lock" aria-hidden="true"></i></span>
+            <%}%>
+            <span class="joiner"><%=room.joiners.length%></span>
+
+            <input class="join" type="button" data-room-id="<%=room._id%>" data-password="<%=room.password%>" data-type="<%=room.type%>" onclick="checkPw(event)" value="참여">
+            <br/>
+            <div class="previewArea">
+                <div class="preview"><span><%=room.lastMsg%></span></div>
+                <div class="unReadCnt"><p><%=room.unReadCnt%></p></div>
+                
+            </div>
+
+            <span class="owner"><small>개설자</small> <%=room.owner%></span>
+            
+        </div>
+        <%})%>
+    </div>
+    <script>
+        let userid;
+        const ws = new WebSocket("ws://"+location.host+"/chat/sse");
+        
+        //서버측에서 변경이 이루어졌다고 알람 발생 시켜주기
+        ws.onmessage = function(recv){
+            console.log(recv);
+            let message = JSON.parse(recv.data);
+            console.log(message);
+            if(userid !== message.session){
+                switch(message.type){
+                    case "new":
+                        if(confirm("새로 개설된 채팅방이 있습니다.")){
+                            location.reload();
+                        }
+                        break;
+                }
+            }
+
+        }
+
+        function checkPw(evt){
+            console.log("참여버튼 눌림");
+            if(evt.target.dataset.type==="private"){
+                let pw = prompt("비밀번호를 입력하세요");
+                if(pw==evt.target.dataset.password){
+                    location.href = `/chat/room?room_id=${evt.target.dataset.roomId}`
+                }else{
+                    alert("비밀번호가 틀렸습니다.")
+                    location.reload();
+                }
+            }else{
+                location.href = `/chat/room?room_id=${evt.target.dataset.roomId}`
+            }
+        }
+
+        function chkRequire(evt){
+            let title = document.querySelector("#inTitle").value
+            let pw = document.querySelector("#inPassword").value
+            if(pw && title){
+                return;
+            }else{
+                alert("방제나 비밀번호를 필수로 기입하세요");
+                return evt.preventDefault();
+            }
+        }
+
+
+
+        !function checkedCheck(){
+            userid = "<%=JSON.stringify(id)%>";
+            userid = userid.replaceAll("&#34;", '\"');
+            userid = JSON.parse(userid);
+            console.log(userid);
+
+            option = "<%=JSON.stringify(option)%>";
+            option = option.replaceAll("&#34;", '\"');
+            option = JSON.parse(option);
+            let optionArea = document.querySelector("#optionArea");
+            optionArea.querySelector("."+option).selected = true;
+        }();
+    
+    </script>
+
+</body>
+</html>

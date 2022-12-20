@@ -1,0 +1,19 @@
+#main{
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -70px;
+    flex-direction: column;
+}
+
+#loginBox{
+    width: 400px; 
+    border : solid; 
+    border-color: rgb(1, 64, 66); 
+    border-radius: 20px;
+    text-align: center; 
+    overflow: hidden; 
+    margin-bottom: 15px;
+
+}

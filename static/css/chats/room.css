@@ -1,0 +1,191 @@
+#main{
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+
+#title{
+    width: 45%;
+    padding: 4px;
+    border: 1px solid;
+    border-color: rgb(1, 64, 66);
+}
+#title > a:link{
+    font-size: 25px;
+    color: rgb(1, 64, 66);
+    margin: 5px;
+    text-decoration:none;
+}
+#title > a:visited{
+    font-size: 25px;
+    color: rgb(1, 64, 66);
+    margin: 5px;
+    text-decoration:none;
+}
+#title .title {
+    font-size: 25px;
+    color: rgb(1, 64, 66);
+    margin: 5px;
+    font-weight: bold;
+}
+#title .makeRoom {
+    font-size: 15px;
+    color: rgb(1, 64, 66);
+    margin: 5px;
+}
+
+#chatBox{
+    padding: 5px;
+    background-color: rgb(1, 64, 66);
+    width: 45%;
+    height: 700px;
+    overflow-y:auto;
+
+}
+
+#chatBox::-webkit-scrollbar {
+    width: 10px;
+    background-color: rgb(170, 201, 202);
+}
+#chatBox::-webkit-scrollbar-thumb {
+    width: 10px;
+    background-color: rgb(0, 26, 27);
+}
+
+.talker{
+    color: rgb(0, 215, 223);
+    margin: 5px 0;
+}
+.msgInfoR{
+    display: flex;
+    width: fit-content;
+    margin-left: auto;
+    align-items: flex-end;
+}
+.msgInfoL{
+    display: flex;
+    width: fit-content;
+    align-items: flex-end;
+}
+.beingRead{
+    color: rgb(0, 215, 223);
+    margin: 0px 10px;
+}
+.date{
+    color: white;
+}
+.right{
+    text-align: right;
+}
+.right .talkmsg {
+    display: inline-block;
+
+    padding: 8px;
+    background-color: rgb(0, 215, 223);
+    border-radius: 10px;
+    color:  rgb(1, 64, 66);
+    
+    width: fit-content;
+    margin-left: auto;
+    margin-top: 3px;
+    
+}
+.talkfile{
+    max-width: 100px;
+}
+.left{
+    text-align: left;
+}
+.left .talkmsg{
+    display: inline-block;
+
+    padding: 8px;
+    background-color: white;
+    border-radius: 10px;
+    color:  rgb(1, 64, 66);
+
+    width: fit-content;
+    margin-top: 3px;
+}
+.alarmArea{
+    margin: 5px 0;
+    display: flex;
+    justify-content: center;
+}
+.alarm{
+    width: 80%;
+    background-color: rgba(0, 216, 223, 0.205);
+    color: white;
+    margin: 0;
+    text-align: center;
+    border-radius: 9px;
+}
+
+
+#joinerArea{
+    width: 250px;
+    position: absolute;
+    right: 10px;
+
+    padding: 5px;
+
+    border: 1px solid;
+    border-color: rgb(1, 64, 66);
+}
+.joinerTitle{
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 2px;
+    background-color: white;
+}
+.joiner{
+    
+    background-color: white;
+    color: rgb(1, 64, 66);
+}
+.fa-user-circle-o:before {
+    margin-right: 5px;
+}
+.outRoom{
+    width: 100%;
+    margin: 0;
+    padding: 5px;
+    color: rgb(1, 64, 66);
+    cursor: pointer;
+}
+
+#msgBox{
+    padding: 0 5px;
+    width: 45%;
+    background-color: rgb(1, 64, 66);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+}
+
+#msg{
+    display: inline-block;
+
+    width: 80%;
+    height: 25px;
+    background-color: white;
+    color: rgb(1, 64, 66);
+    margin: 5px 0;
+
+    border-radius: 10px;
+}
+#file{
+    display: none;
+}
+#iconFile{
+    display: inline-block;
+    margin-left: -20px;
+
+    font-size: 25px;
+    border: 0;
+    outline: 0;
+    cursor: pointer;
+}
